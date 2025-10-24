@@ -36,7 +36,6 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Login submitted for store:", account_code);
-    // TODO: Send login request with account_code
   };
 
   if (loading) {

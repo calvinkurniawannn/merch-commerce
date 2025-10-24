@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import Home from "./pages/auth/Home";
 
 // 404 Page Component
 function NotFound() {
@@ -10,7 +11,7 @@ function NotFound() {
         <h1 className="text-6xl font-bold text-black">404</h1>
         <p className="text-gray-500 mt-4">Store not found</p>
         <p className="text-sm text-gray-400 mt-2">
-          Please use the correct store URL: /STORECODE/login
+          Please use the correct store URL: /storename/login.
         </p>
       </div>
     </div>
@@ -22,6 +23,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         {/* Store-specific auth routes - REQUIRED account_code */}
+        <Route path="/:account_code/" element={<Home />} />
         <Route path="/:account_code/login" element={<Login />} />
         <Route path="/:account_code/register" element={<Register />} />
 
