@@ -1,11 +1,16 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Button from "../../components/button";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Login() {
   const { account_code } = useParams(); // Get account_code from URL
+  const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [storeInfo, setStoreInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loginError, setLoginError] = useState(null);
+  const [loggingIn, setLoggingIn] = useState(false);
 
   // Fetch store information based on account_code
   useEffect(() => {
@@ -33,9 +38,53 @@ export default function Login() {
     }
   }, [account_code]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login submitted for store:", account_code);
+    setLoginError(null);
+    setLoggingIn(true);
+
+    const formData = new FormData(e.target);
+    const credentials = {
+      username: formData.get("username"),
+      password: formData.get("password"),
+      account_code: account_code,
+    };
+
+    try {
+      // Call Laravel login endpoint directly
+      const response = await fetch(`/${account_code}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Invalid username or password");
+      }
+
+      // Refresh user data in context
+      await refreshUser();
+
+      // Laravel controller will return user data with role
+      // Redirect based on user role
+      if (data.role === "seller") {
+        navigate(`/${account_code}/seller/dashboard`);
+      } else if (data.role === "customer") {
+        navigate(`/${account_code}`);
+      } else {
+        // Default redirect for other roles
+        navigate(`/${account_code}`);
+      }
+    } catch (error) {
+      setLoginError(error.message || "Invalid username or password");
+    } finally {
+      setLoggingIn(false);
+    }
   };
 
   if (loading) {
@@ -69,7 +118,7 @@ export default function Login() {
           <div className="text-center mb-8">
             {storeInfo?.logo ? (
               <img
-                src={storeInfo.logo}
+                src={`/storage/${storeInfo.logo}`}
                 alt={storeInfo.store_name}
                 className="w-16 h-16 mx-auto rounded-full mb-4 object-cover"
               />
@@ -82,21 +131,30 @@ export default function Login() {
                 </span>
               </div>
             )}
-            <h1 className="text-3xl font-bold text-black">Welcome Back</h1>
+            <h1 className="text-3xl font-bold text-black">Welcome</h1>
             <p className="text-gray-500 mt-2">
               Sign in to {storeInfo?.store_name || account_code}
             </p>
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {loginError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {loginError}
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-black mb-2">
                 Username
               </label>
               <input
                 type="text"
+                name="username"
                 placeholder="Fill your username"
                 className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition"
+                required
+                disabled={loggingIn}
               />
             </div>
 
@@ -106,8 +164,11 @@ export default function Login() {
               </label>
               <input
                 type="password"
+                name="password"
                 placeholder="Enter your password"
                 className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition"
+                required
+                disabled={loggingIn}
               />
             </div>
 
@@ -127,8 +188,13 @@ export default function Login() {
               </Link>
             </div>
 
-            <Button type="submit" variant="primary" className="w-full">
-              Sign In
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full"
+              disabled={loggingIn}
+            >
+              {loggingIn ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 

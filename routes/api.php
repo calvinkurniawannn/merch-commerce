@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Store;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,9 @@ use App\Models\Store;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// Auth check endpoint
+Route::get('/auth/check', [AuthController::class, 'check']);
 
 // Store validation endpoint - fetch store by account_code
 Route::get('/stores/{account_code}', function ($account_code) {

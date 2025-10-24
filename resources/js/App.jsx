@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Home from "./pages/auth/Home";
+import SellerDashboard from "./pages/seller/Dashboard";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // 404 Page Component
 function NotFound() {
@@ -21,15 +24,27 @@ function NotFound() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Store-specific auth routes - REQUIRED account_code */}
-        <Route path="/:account_code/" element={<Home />} />
-        <Route path="/:account_code/login" element={<Login />} />
-        <Route path="/:account_code/register" element={<Register />} />
+      <AuthProvider>
+        <Routes>
+          {/* Store-specific auth routes - REQUIRED account_code */}
+          <Route path="/:account_code" element={<Home />} />
+          <Route path="/:account_code/login" element={<Login />} />
+          <Route path="/:account_code/register" element={<Register />} />
 
-        {/* 404 for everything else */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* Protected seller route - requires authentication and seller role */}
+          <Route
+            path="/:account_code/seller/dashboard"
+            element={
+              <ProtectedRoute requiredRole="seller">
+                <SellerDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 404 for everything else */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

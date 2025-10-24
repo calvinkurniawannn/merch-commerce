@@ -90,7 +90,7 @@ export default function Register() {
           <div className="text-center mb-6">
             {storeInfo?.logo ? (
               <img
-                src={storeInfo.logo}
+                src={`/storage/${storeInfo.logo}`}
                 alt={storeInfo.store_name}
                 className="w-14 h-14 mx-auto rounded-full mb-3 object-cover"
               />
