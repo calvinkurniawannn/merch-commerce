@@ -15,7 +15,6 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'account_code',
         'role',
         'phone',
         'address',
@@ -31,16 +30,33 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'created_date' => 'datetime',
             'modified_date' => 'datetime',
         ];
     }
 
-    // Relationship: One user has one store (if seller)
-    public function store()
+    // For SELLERS: One seller owns one store
+    public function ownedStore()
     {
-        return $this->hasOne(Store::class);
+        return $this->hasOne(Store::class, 'owner_id');
+    }
+
+    // For USERS: Many users can register in many stores
+    public function registeredStores()
+    {
+        return $this->belongsToMany(Store::class, 'customers')  // Changed table name
+                    ->withPivot('customer_code', 'is_active', 'registered_at')
+                    ->withTimestamps();
+    }
+
+    // Check if user can access a specific store
+    public function canAccessStore($storeId)
+    {
+        if ($this->role === 'seller') {
+            return $this->ownedStore && $this->ownedStore->id === $storeId;
+        }
+        
+        return $this->registeredStores()->where('store_id', $storeId)->where('is_active', true)->exists();
     }
 }

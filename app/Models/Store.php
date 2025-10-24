@@ -10,7 +10,7 @@ class Store extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'owner_id',
         'account_code',
         'store_name',
         'logo',
@@ -26,9 +26,17 @@ class Store extends Model
         'modified_date' => 'datetime',
     ];
 
-    // Relationship: Store belongs to one user (seller)
-    public function user()
+    // Store owner (seller)
+    public function owner()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    // Registered customers
+    public function customers()
+    {
+        return $this->belongsToMany(User::class, 'customers')  // Changed table name
+                    ->withPivot('customer_code', 'is_active', 'registered_at')
+                    ->withTimestamps();
     }
 }
