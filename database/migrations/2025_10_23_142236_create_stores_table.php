@@ -11,13 +11,13 @@ return new class extends Migration
         Schema::create('stores', function (Blueprint $table) {
             $table->id();
 
-            // Link to seller/user
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            // Link to seller/user (CHANGED: user_id → owner_id)
+            $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
 
             // Basic store identity
             $table->string('account_code')->unique();
             $table->string('store_name');
-            $table->string('logo')->nullable(); // path/logo image
+            $table->string('logo')->nullable();
             $table->string('theme_color')->nullable();
 
             // Optional info about seller

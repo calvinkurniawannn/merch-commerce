@@ -45,8 +45,8 @@ class User extends Authenticatable
     // For USERS: Many users can register in many stores
     public function registeredStores()
     {
-        return $this->belongsToMany(Store::class, 'customers')  // Changed table name
-                    ->withPivot('customer_code', 'is_active', 'registered_at')
+        return $this->belongsToMany(Store::class, 'customers')
+                    ->withPivot('customer_code', 'is_active', 'created_by', 'created_date', 'modified_by', 'modified_date')
                     ->withTimestamps();
     }
 

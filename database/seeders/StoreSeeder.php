@@ -10,11 +10,10 @@ class StoreSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get the sellers we created
         $seller1 = User::where('email', 'john@seller.com')->first();
         $seller2 = User::where('email', 'sarah@seller.com')->first();
 
-        // Create Store 1 - Tech Store
+        // Store 1 - Owned by Seller 1
         $store1 = Store::create([
             'owner_id' => $seller1->id,
             'account_code' => 'TECHSTORE',
@@ -26,17 +25,7 @@ class StoreSeeder extends Seeder
             'created_by' => 'system',
         ]);
 
-        // Register seller1 as seller in their own store
-        $seller1->stores()->attach($store1->id, [
-            'username' => 'johnseller',
-            'account_code' => 'TECHSTORE-SELLER001',
-            'role' => 'seller',
-            'is_active' => true,
-            'registered_at' => now(),
-            'registered_by' => 'system',
-        ]);
-
-        // Create Store 2 - Fashion Store
+        // Store 2 - Owned by Seller 2
         $store2 = Store::create([
             'owner_id' => $seller2->id,
             'account_code' => 'FASHIONHUB',
@@ -48,59 +37,43 @@ class StoreSeeder extends Seeder
             'created_by' => 'system',
         ]);
 
-        // Register seller2 as seller in their own store
-        $seller2->stores()->attach($store2->id, [
-            'username' => 'sarahshop',
-            'account_code' => 'FASHIONHUB-SELLER001',
-            'role' => 'seller',
+        // Get customers
+        $alice = User::where('email', 'alice@customer.com')->first();
+        $bob = User::where('email', 'bob@customer.com')->first();
+        $charlie = User::where('email', 'charlie@customer.com')->first();
+
+        // Alice registers in both stores
+        $alice->registeredStores()->attach($store1->id, [
+            'customer_code' => 'TECHSTORE-CUST001',
             'is_active' => true,
-            'registered_at' => now(),
-            'registered_by' => 'system',
+            'created_by' => 'system',
+            'created_date' => now(),
+        ]);
+        
+        $alice->registeredStores()->attach($store2->id, [
+            'customer_code' => 'FASHIONHUB-CUST001',
+            'is_active' => true,
+            'created_by' => 'system',
+            'created_date' => now(),
         ]);
 
-        // Register customers in Store 1 (Tech Store)
-        $customer1 = User::where('email', 'alice@customer.com')->first();
-        $customer2 = User::where('email', 'bob@customer.com')->first();
-        $customer3 = User::where('email', 'charlie@customer.com')->first();
-
-        $customer1->stores()->attach($store1->id, [
-            'username' => 'alice_tech',
-            'account_code' => 'TECHSTORE-CUST001',
-            'role' => 'customer',
+        // Bob registers only in Tech Store
+        $bob->registeredStores()->attach($store1->id, [
+            'customer_code' => 'TECHSTORE-CUST002',
             'is_active' => true,
-            'registered_at' => now(),
-            'registered_by' => 'system',
+            'created_by' => 'system',
+            'created_date' => now(),
         ]);
 
-        $customer2->stores()->attach($store1->id, [
-            'username' => 'bob_tech',
-            'account_code' => 'TECHSTORE-CUST002',
-            'role' => 'customer',
+        // Charlie registers only in Fashion Hub
+        $charlie->registeredStores()->attach($store2->id, [
+            'customer_code' => 'FASHIONHUB-CUST002',
             'is_active' => true,
-            'registered_at' => now(),
-            'registered_by' => 'system',
+            'created_by' => 'system',
+            'created_date' => now(),
         ]);
 
-        // Register customers in Store 2 (Fashion Store)
-        $customer1->stores()->attach($store2->id, [
-            'username' => 'alice_fashion',
-            'account_code' => 'FASHIONHUB-CUST001',
-            'role' => 'customer',
-            'is_active' => true,
-            'registered_at' => now(),
-            'registered_by' => 'system',
-        ]);
-
-        $customer3->stores()->attach($store2->id, [
-            'username' => 'charlie_fashion',
-            'account_code' => 'FASHIONHUB-CUST002',
-            'role' => 'customer',
-            'is_active' => true,
-            'registered_at' => now(),
-            'registered_by' => 'system',
-        ]);
-
-        echo "✅ Created 2 stores with customers registered\n";
+        echo "✅ Created 2 stores with customer registrations\n";
         echo "   - Tech Paradise Store (TECHSTORE): 2 customers\n";
         echo "   - Fashion Hub Boutique (FASHIONHUB): 2 customers\n";
     }

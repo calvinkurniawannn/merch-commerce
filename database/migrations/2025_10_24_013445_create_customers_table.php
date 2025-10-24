@@ -14,7 +14,13 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('customer_code')->unique();
             $table->boolean('is_active')->default(true);
-            $table->timestamp('registered_at')->useCurrent();
+
+            // Audit tracking
+            $table->string('created_by');
+            $table->timestamp('created_date')->useCurrent();
+            $table->string('modified_by')->nullable();
+            $table->timestamp('modified_date')->nullable();
+           
             $table->timestamps();
             
             $table->unique(['store_id', 'user_id']);

@@ -35,8 +35,8 @@ class Store extends Model
     // Registered customers
     public function customers()
     {
-        return $this->belongsToMany(User::class, 'customers')  // Changed table name
-                    ->withPivot('customer_code', 'is_active', 'registered_at')
+        return $this->belongsToMany(User::class, 'customers')
+                    ->withPivot('customer_code', 'is_active', 'created_by', 'created_date', 'modified_by', 'modified_date')
                     ->withTimestamps();
     }
 }
