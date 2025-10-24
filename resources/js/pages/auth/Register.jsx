@@ -1,14 +1,44 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 export default function Register() {
   const navigate = useNavigate();
+  const { account_code } = useParams(); // Get account_code from URL
+  const [storeInfo, setStoreInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+
+  // Fetch store information based on account_code
+  useEffect(() => {
+    const fetchStore = async () => {
+      try {
+        const response = await fetch(`/api/stores/${account_code}`);
+        if (response.ok) {
+          const data = await response.json();
+          setStoreInfo(data);
+        } else {
+          setStoreInfo(null);
+        }
+      } catch (error) {
+        console.error("Error fetching store:", error);
+        setStoreInfo(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (account_code) {
+      fetchStore();
+    } else {
+      setLoading(false);
+    }
+  }, [account_code]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,22 +53,60 @@ export default function Register() {
       return;
     }
 
-    console.log("User Registered:", form);
+    console.log("User Registered for store:", account_code, form);
 
-    // simulate success
-    navigate("/login");
+    // simulate success - redirect to login for the same store
+    navigate(`/${account_code}/login`);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <p className="text-gray-500 mt-4">Loading store...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!storeInfo && account_code) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-black">Store Not Found</h1>
+          <p className="text-gray-500 mt-4">
+            The store "{account_code}" does not exist.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white py-8">
       <div className="w-full max-w-md px-6">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-full mb-3">
-              <span className="text-white text-xl font-bold">M</span>
-            </div>
+            {storeInfo?.logo ? (
+              <img
+                src={storeInfo.logo}
+                alt={storeInfo.store_name}
+                className="w-14 h-14 mx-auto rounded-full mb-3 object-cover"
+              />
+            ) : (
+              <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-full mb-3">
+                <span className="text-white text-xl font-bold">
+                  {storeInfo?.store_name?.[0] ||
+                    account_code?.[0]?.toUpperCase() ||
+                    "M"}
+                </span>
+              </div>
+            )}
             <h1 className="text-2xl font-bold text-black">Create Account</h1>
-            <p className="text-gray-500 text-sm mt-1">Sign up to get started</p>
+            <p className="text-gray-500 text-sm mt-1">
+              Sign up to {storeInfo?.store_name || account_code}
+            </p>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
@@ -154,7 +222,7 @@ export default function Register() {
           <p className="text-center text-sm text-gray-600 mt-6">
             Already have an account?{" "}
             <Link
-              to="/"
+              to={`/${account_code}/login`}
               className="font-medium text-blue-600 hover:text-blue-700 transition"
             >
               Sign in

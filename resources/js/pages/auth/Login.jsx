@@ -1,22 +1,92 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Button from "../../components/button";
 
 export default function Login() {
+  const { account_code } = useParams(); // Get account_code from URL
+  const [storeInfo, setStoreInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch store information based on account_code
+  useEffect(() => {
+    const fetchStore = async () => {
+      try {
+        const response = await fetch(`/api/stores/${account_code}`);
+        if (response.ok) {
+          const data = await response.json();
+          setStoreInfo(data);
+        } else {
+          setStoreInfo(null);
+        }
+      } catch (error) {
+        console.error("Error fetching store:", error);
+        setStoreInfo(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (account_code) {
+      fetchStore();
+    } else {
+      setLoading(false);
+    }
+  }, [account_code]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Login submitted");
+    console.log("Login submitted for store:", account_code);
+    // TODO: Send login request with account_code
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <p className="text-gray-500 mt-4">Loading store...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!storeInfo && account_code) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-black">Store Not Found</h1>
+          <p className="text-gray-500 mt-4">
+            The store "{account_code}" does not exist.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="w-full max-w-md px-6">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
-              <span className="text-white text-2xl font-bold">M</span>
-            </div>
+            {storeInfo?.logo ? (
+              <img
+                src={storeInfo.logo}
+                alt={storeInfo.store_name}
+                className="w-16 h-16 mx-auto rounded-full mb-4 object-cover"
+              />
+            ) : (
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
+                <span className="text-white text-2xl font-bold">
+                  {storeInfo?.store_name?.[0] ||
+                    account_code?.[0]?.toUpperCase() ||
+                    "M"}
+                </span>
+              </div>
+            )}
             <h1 className="text-3xl font-bold text-black">Welcome Back</h1>
-            <p className="text-gray-500 mt-2">Sign in to your account</p>
+            <p className="text-gray-500 mt-2">
+              Sign in to {storeInfo?.store_name || account_code}
+            </p>
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
@@ -93,7 +163,7 @@ export default function Login() {
           <p className="text-center text-sm text-gray-600 mt-8">
             Don't have an account?{" "}
             <Link
-              to="/register"
+              to={`/${account_code}/register`}
               className="font-medium text-blue-600 hover:text-blue-700 transition"
             >
               Sign up for free
